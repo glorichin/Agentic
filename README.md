@@ -28,62 +28,57 @@ python3 step2_mock_tools.py
 You should see 14/14 tools passing and a summary of the key
 values the agents will reason over.
 
-## For teammates building Step 3 (CrewAI agents)
+### Step 3 — The agent crew (`titan_agents.py`)
+
+This is the engine that unites everything: it loads the LLM (Step 1 style),
+wraps the 12 mock tools (Step 2) as CrewAI tools, and defines the 5 agents
+from the *Agent Prompts* deliverable. It exposes one function:
 
 ```python
-from step2_mock_tools import (
-    sensor_telemetry_api,
-    maintenance_history_api,
-    parts_inventory_api,
-    downtime_cost_calculator,
-    anomaly_detector,
-    rul_predictor,
-    asset_health_scorer,
-    root_cause_analyzer,
-    work_order_generator,
-    notification_service,
-    dashboard_updater,
-    policy_validator,
-)
+from titan_agents import run_pipeline, DEMO_EVENT
+
+result = run_pipeline(DEMO_EVENT)
+print(result["final"])          # orchestrator's final decision (dict)
+print(result["agents"]["cost"]) # any specialist's assessment
 ```
 
-LLM setup for CrewAI:
+The crew runs as a **sequential pipeline** — the four specialists assess the
+event, the Safety & Governance agent gates the proposed actions, and the
+Orchestrator synthesizes everything (conflict check → priority score →
+AUTONOMOUS vs ESCALATE). Run it directly to test:
 
-```python
-import os
-from dotenv import load_dotenv
-from crewai import LLM
-
-load_dotenv()
-llm = LLM(
-    model="gemini/gemini-2.0-flash",
-    api_key=os.getenv("GEMINI_API_KEY"),
-    temperature=0.1,
-)
+```bash
+python3 titan_agents.py
 ```
 
-Demo trigger event to kick off the scenario:
+### Step 4 — The Streamlit demo (`app.py`)
 
-```python
-DEMO_EVENT = {
-    "event_type": "SENSOR_THRESHOLD_BREACH",
-    "asset_id":   "CNC-Lathe-07",
-    "plant":      "Plant 3 - Valencia",
-    "signal":     "spindle_vibration",
-    "value":      0.48,
-    "threshold":  0.35,
-    "timestamp":  "2026-06-20T07:14:33Z",
-}
+The visual demo. Pick a trigger event in the sidebar, click **Run the crew**,
+and watch each agent's assessment appear live, followed by the Orchestrator's
+final decision.
+
+```bash
+pip install -r requirements.txt   # includes streamlit
+# make sure your key is in .env
+streamlit run app.py
 ```
+
+### Colab path (`titan_maintenance_crew.ipynb`)
+
+Same engine, runnable in Google Colab — clone the repo, paste your key when
+prompted (via `getpass`, so it's never saved), and run all cells.
 
 ## File structure
 
 ```
 titan_mip/
-├── .env                ← add your Gemini key (never commit this)
+├── .env                          ← your Gemini key (never commit this)
 ├── .gitignore
 ├── requirements.txt
-├── step1_setup.py      ← run first — checks packages + API key
-├── step2_mock_tools.py ← all 12 mock tools + smoke test
+├── step1_setup.py                ← run first — checks packages + API key
+├── step2_mock_tools.py           ← all 12 mock tools + smoke test
+├── titan_agents.py               ← Step 3 — the 5 agents + run_pipeline()
+├── app.py                        ← Step 4 — Streamlit demo
+├── titan_maintenance_crew.ipynb  ← Colab notebook (same engine)
 └── README.md
 ```

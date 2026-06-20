@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titan MIP — How the Demo Works</title>
+<style>
+  :root {
+    --c-bg: #ffffff; --c-bg2: #f7f6f3; --c-bg3: #f0efe9;
+    --c-text: #1a1a18; --c-text2: #5f5e5a; --c-text3: #888780;
+    --c-border: rgba(0,0,0,0.12); --c-border2: rgba(0,0,0,0.22);
+    --c-purple: #534AB7; --c-purple-bg: #EEEDFE; --c-purple-dark: #3C3489;
+    --c-teal: #0F6E56; --c-teal-bg: #E1F5EE; --c-teal-dark: #085041;
+    --c-amber: #854F0B; --c-amber-bg: #FAEEDA;
+    --c-coral: #993C1D; --c-coral-bg: #FAECE7;
+    --c-blue: #185FA5; --c-blue-bg: #E6F1FB; --c-blue-dark: #0C447C;
+    --c-red: #A32D2D; --c-red-bg: #FCEBEB;
+    --c-green: #3B6D11; --c-green-bg: #EAF3DE;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --c-bg: #1e1e1c; --c-bg2: #252523; --c-bg3: #2c2c2a;
+      --c-text: #e8e6de; --c-text2: #a8a69e; --c-text3: #6e6c66;
+      --c-border: rgba(255,255,255,0.10); --c-border2: rgba(255,255,255,0.18);
+      --c-purple: #AFA9EC; --c-purple-bg: #26215C; --c-purple-dark: #CECBF6;
+      --c-teal: #5DCAA5; --c-teal-bg: #04342C; --c-teal-dark: #9FE1CB;
+      --c-amber: #EF9F27; --c-amber-bg: #412402;
+      --c-coral: #F0997B; --c-coral-bg: #4A1B0C;
+      --c-blue: #85B7EB; --c-blue-bg: #042C53; --c-blue-dark: #B5D4F4;
+      --c-red: #F09595; --c-red-bg: #501313;
+      --c-green: #97C459; --c-green-bg: #173404;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--c-bg); color: var(--c-text); line-height: 1.65; font-size: 15px; }
+  .page { max-width: 920px; margin: 0 auto; padding: 48px 32px; }
+
+  .doc-header { margin-bottom: 44px; padding-bottom: 32px; border-bottom: 0.5px solid var(--c-border2); }
+  .doc-tag { display: inline-block; background: var(--c-purple-bg); color: var(--c-purple-dark); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 20px; margin-bottom: 16px; text-transform: uppercase; }
+  .doc-title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+  .doc-subtitle { font-size: 15px; color: var(--c-text2); }
+  .meta-row { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--c-text3); }
+  .meta-item strong { color: var(--c-text2); font-weight: 500; }
+
+  .section { margin-bottom: 52px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .section-number { width: 28px; height: 28px; border-radius: 50%; background: var(--c-purple-bg); color: var(--c-purple); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-title { font-size: 19px; font-weight: 600; }
+  .section-desc { font-size: 14px; color: var(--c-text2); margin-bottom: 18px; padding-left: 40px; }
+
+  .card { background: var(--c-bg); border: 0.5px solid var(--c-border); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 14px; }
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--c-text3); margin-bottom: 8px; }
+  .card-body { font-size: 14px; color: var(--c-text2); }
+  .card-body b, .card-body strong { color: var(--c-text); }
+
+  pre.code { background: var(--c-bg3); border-radius: var(--radius-sm); padding: 14px 18px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; color: var(--c-text); margin: 6px 0; }
+  .inline { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; background: var(--c-bg3); padding: 1px 6px; border-radius: 4px; color: var(--c-teal); }
+
+  /* Pipeline flow */
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 16px; }
+  .flow-rail { display: flex; flex-direction: column; align-items: center; }
+  .flow-dot { width: 34px; height: 34px; min-width: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1.5px solid var(--c-border2); background: var(--c-bg2); }
+  .flow-line { width: 2px; flex: 1; background: var(--c-border2); min-height: 18px; }
+  .flow-body { padding-bottom: 22px; padding-top: 4px; }
+  .flow-name { font-size: 14.5px; font-weight: 600; margin-bottom: 3px; }
+  .flow-text { font-size: 13px; color: var(--c-text2); }
+  .flow-text .inline { font-size: 11.5px; }
+
+  /* Agent cards */
+  .agent { border: 0.5px solid var(--c-border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; }
+  .agent-head { display: flex; align-items: center; gap: 10px; padding: 13px 18px; background: var(--c-bg2); border-bottom: 0.5px solid var(--c-border); }
+  .agent-icon { font-size: 17px; }
+  .agent-name { font-size: 14.5px; font-weight: 600; }
+  .agent-pill { margin-left: auto; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-orch { background: var(--c-purple-bg); color: var(--c-purple-dark); }
+  .pill-spec { background: var(--c-blue-bg); color: var(--c-blue-dark); }
+  .pill-gate { background: var(--c-coral-bg); color: var(--c-coral); }
+  .agent-body { padding: 14px 18px; font-size: 13.5px; color: var(--c-text2); }
+  .agent-body .row { margin-bottom: 7px; }
+  .agent-body .k { color: var(--c-text); font-weight: 600; }
+  .toolchip { display: inline-block; font-family: ui-monospace, monospace; font-size: 11px; background: var(--c-bg3); border: 0.5px solid var(--c-border); border-radius: 4px; padding: 2px 7px; margin: 2px 3px 2px 0; color: var(--c-text2); }
+
+  .note { border-radius: var(--radius-sm); padding: 13px 16px; font-size: 13px; margin: 12px 0; }
+  .note-purple { background: var(--c-purple-bg); color: var(--c-purple-dark); }
+  .note-amber { background: var(--c-amber-bg); color: var(--c-amber); }
+  .note-green { background: var(--c-green-bg); color: var(--c-green); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--c-text3); padding: 8px 10px; border-bottom: 1px solid var(--c-border2); }
+  td { padding: 9px 10px; border-bottom: 0.5px solid var(--c-border); vertical-align: top; color: var(--c-text2); }
+  td.mono { font-family: ui-monospace, monospace; font-size: 12px; color: var(--c-text); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } .page { padding: 28px 18px; } }
+
+  .footer { margin-top: 56px; padding-top: 22px; border-top: 0.5px solid var(--c-border2); font-size: 12px; color: var(--c-text3); text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <span class="doc-tag">Agentic AI — Demo Walkthrough</span>
+    <div class="doc-title">What happens when you run the demo</div>
+    <div class="doc-subtitle">Titan Maintenance Intelligence Platform — a 5-agent crew turning one sensor alert into a maintenance decision</div>
+    <div class="meta-row">
+      <div class="meta-item"><strong>Run with:</strong> <span class="inline">streamlit run app.py</span></div>
+      <div class="meta-item"><strong>LLM:</strong> Gemini Flash-Lite</div>
+      <div class="meta-item"><strong>Framework:</strong> CrewAI</div>
+      <div class="meta-item"><strong>Pattern:</strong> Observe → Reason → Act</div>
+    </div>
+  </div>
+
+  <!-- 1. THE BIG PICTURE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div class="section-title">The big picture</div>
+    </div>
+    <div class="section-desc">One alert comes in. Five specialist agents look at it from different angles. One decision comes out.</div>
+
+    <div class="card">
+      <div class="card-body">
+        Titan's plants fire <b>22,000+ sensor alerts a day</b> with no prioritization. The demo shows how an agentic system fixes that:
+        instead of a human reading raw telemetry, a team of AI agents <b>perceives</b> the alert, <b>reasons</b> about how risky and
+        costly it really is, checks it against <b>safety policy</b>, and returns a single <b>prioritized, explainable recommendation</b> —
+        deciding on its own whether it can act autonomously or must escalate to a human.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">The trigger event (this is what kicks everything off)</div>
+      <pre class="code">{
+  "event_type": "SENSOR_THRESHOLD_BREACH",
+  "asset_id":   "CNC-Lathe-07",
+  "plant":      "Plant 3 - Valencia",
+  "signal":     "spindle_vibration",
+  "value":      0.48,        // measured
+  "threshold":  0.35,        // safe limit  →  37% over
+  "timestamp":  "2026-06-20T07:14:33Z"
+}</pre>
+      <div class="card-body">You set this in the Streamlit <b>sidebar</b> and press <b>▶ Run the crew</b>. Everything below happens automatically.</div>
+    </div>
+  </div>
+
+  <!-- 2. THE PIPELINE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div class="section-title">The pipeline — step by step</div>
+    </div>
+    <div class="section-desc">The agents run as a sequential pipeline: the three specialists assess first, the governance gate reviews, and the orchestrator synthesizes last. Each step's output feeds the next.</div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">⚡</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">0 · Event received</div>
+          <div class="flow-text">Streamlit calls <span class="inline">run_pipeline(event)</span> in <span class="inline">titan_agents.py</span>, which builds the 5 agents and the task list.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">📡</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">1 · Reliability Agent — how sick is the machine?</div>
+          <div class="flow-text">Reads telemetry, scores the anomaly, checks repair history, estimates Remaining Useful Life (RUL) and a health score. → e.g. <b>health 29/100, AT_RISK, RUL ~44h</b>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">🔍</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">2 · Process Agent — can we even fix it in time?</div>
+          <div class="flow-text">Checks spare-parts stock, lead time, technician availability and recurring process delays. Surfaces the biggest bottleneck and a <b>process_risk</b> score.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">💰</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">3 · Cost Agent — how much money is at stake?</div>
+          <div class="flow-text">Calculates downtime cost (<b>$180,000/day</b>), orders at risk (Airbus, Rolls-Royce…), ROI of fixing now vs later, and a <b>financial_impact_score</b>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">🛡️</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">4 · Safety &amp; Governance Agent — is the action allowed?</div>
+          <div class="flow-text">Runs each proposed action through <span class="inline">policy_validator</span>. Draft work order / notify / update dashboard → <b>APPROVED</b>. Machine shutdown → <b>REQUIRES_APPROVAL</b>. LOTO override → <b>REJECTED</b>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">⚙️</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <div class="flow-name">5 · Orchestrator — the final call</div>
+          <div class="flow-text">Reads all four assessments, <b>checks for conflicts</b>, computes the priority score, applies the safety override if needed, decides <b>AUTONOMOUS vs ESCALATE</b>, and executes the approved actions (drafts the work order, notifies the lead, updates the dashboard).</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-dot">✅</div></div>
+        <div class="flow-body">
+          <div class="flow-name">Output</div>
+          <div class="flow-text">A single JSON decision with priority score, risk level, recommended action, rationale, work-order draft and next check-in — shown as cards in the UI.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note note-purple">
+      <b>The priority formula the Orchestrator uses:</b><br>
+      Priority = (failure_probability × 0.4) + (financial_impact_score × 0.35) + (process_risk × 0.25).
+      If Safety &amp; Governance flags something the formula misses, <b>safety overrides the number</b>.
+    </div>
+  </div>
+
+  <!-- 3. THE AGENTS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div class="section-title">Who's in the crew</div>
+    </div>
+    <div class="section-desc">Five agents, each with a narrow job and its own set of tools. No single agent reasons across everything — that's the whole point.</div>
+
+    <div class="agent">
+      <div class="agent-head"><span class="agent-icon">⚙️</span><span class="agent-name">Maintenance Intelligence Orchestrator</span><span class="agent-pill pill-orch">Manager</span></div>
+      <div class="agent-body">
+        <div class="row"><span class="k">Job:</span> coordinates the others, checks for conflicts, scores priority, decides autonomous vs escalate, executes approved actions.</div>
+        <div class="row"><span class="k">Tools:</span>
+          <span class="toolchip">work_order_generator</span><span class="toolchip">notification_service</span><span class="toolchip">dashboard_updater</span></div>
+      </div>
+    </div>
+
+    <div class="agent">
+      <div class="agent-head"><span class="agent-icon">📡</span><span class="agent-name">Reliability Intelligence Agent</span><span class="agent-pill pill-spec">Specialist</span></div>
+      <div class="agent-body">
+        <div class="row"><span class="k">Job:</span> assess machine health &amp; failure risk from sensor data and repair history.</div>
+        <div class="row"><span class="k">Tools:</span>
+          <span class="toolchip">sensor_telemetry_api</span><span class="toolchip">anomaly_detector</span><span class="toolchip">maintenance_history_api</span><span class="toolchip">rul_predictor</span><span class="toolchip">asset_health_scorer</span></div>
+      </div>
+    </div>
+
+    <div class="agent">
+      <div class="agent-head"><span class="agent-icon">🔍</span><span class="agent-name">Process Intelligence Agent</span><span class="agent-pill pill-spec">Specialist</span></div>
+      <div class="agent-body">
+        <div class="row"><span class="k">Job:</span> assess whether the org can actually execute a fix in time — parts, people, recurring delays.</div>
+        <div class="row"><span class="k">Tools:</span>
+          <span class="toolchip">maintenance_history_api</span><span class="toolchip">parts_inventory_api</span><span class="toolchip">root_cause_analyzer</span></div>
+      </div>
+    </div>
+
+    <div class="agent">
+      <div class="agent-head"><span class="agent-icon">💰</span><span class="agent-name">Cost Intelligence Agent</span><span class="agent-pill pill-spec">Specialist</span></div>
+      <div class="agent-body">
+        <div class="row"><span class="k">Job:</span> turn risk into money — downtime cost, orders at risk, ROI of intervening now.</div>
+        <div class="row"><span class="k">Tools:</span>
+          <span class="toolchip">downtime_cost_calculator</span><span class="toolchip">parts_inventory_api</span></div>
+      </div>
+    </div>
+
+    <div class="agent">
+      <div class="agent-head"><span class="agent-icon">🛡️</span><span class="agent-name">Safety &amp; Governance Agent</span><span class="agent-pill pill-gate">Gate</span></div>
+      <div class="agent-body">
+        <div class="row"><span class="k">Job:</span> the final gate — nothing executes without passing safety &amp; financial policy.</div>
+        <div class="row"><span class="k">Tools:</span>
+          <span class="toolchip">policy_validator</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. AGENTS DECIDE, TOOLS EXECUTE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div class="section-title">Agents decide, tools execute</div>
+    </div>
+    <div class="section-desc">The agents (the LLM) do the thinking. The 12 tools just fetch data or perform an action — they never decide anything.</div>
+
+    <div class="card">
+      <div class="card-body">
+        In a real deployment these tools would hit live SCADA sensors, the maintenance system (CMMS), the parts warehouse and the
+        BMC Helix portal. <b>For the demo they're mocked</b> in <span class="inline">step2_mock_tools.py</span> — they return realistic,
+        deterministic data so the agents reason over a believable scenario without needing real factory infrastructure.
+      </div>
+    </div>
+
+    <table>
+      <tr><th>Tool</th><th>What it does</th><th>Type</th></tr>
+      <tr><td class="mono">sensor_telemetry_api</td><td>Vibration, temperature, pressure, motor current readings</td><td>read</td></tr>
+      <tr><td class="mono">anomaly_detector</td><td>Scores how abnormal the readings are (0–1)</td><td>compute</td></tr>
+      <tr><td class="mono">rul_predictor</td><td>Estimates Remaining Useful Life in hours</td><td>compute</td></tr>
+      <tr><td class="mono">asset_health_scorer</td><td>Single 0–100 health score</td><td>compute</td></tr>
+      <tr><td class="mono">maintenance_history_api</td><td>Past tickets &amp; recurring fault patterns</td><td>read</td></tr>
+      <tr><td class="mono">parts_inventory_api</td><td>Spare-parts stock &amp; lead time</td><td>read</td></tr>
+      <tr><td class="mono">downtime_cost_calculator</td><td>$/day of downtime + orders at risk</td><td>read</td></tr>
+      <tr><td class="mono">root_cause_analyzer</td><td>Most likely root cause + recommended fix</td><td>compute</td></tr>
+      <tr><td class="mono">policy_validator</td><td>Approves / requires-approval / rejects an action</td><td>execute</td></tr>
+      <tr><td class="mono">work_order_generator</td><td>Drafts a work order (always DRAFT, human reviews)</td><td>write</td></tr>
+      <tr><td class="mono">notification_service</td><td>Sends the alert to the maintenance lead</td><td>execute</td></tr>
+      <tr><td class="mono">dashboard_updater</td><td>Posts the assessment to the Helix dashboard</td><td>write</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. WHAT YOU SEE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <div class="section-title">What you'll see on screen</div>
+    </div>
+    <div class="section-desc">The Streamlit UI in <span class="inline">app.py</span>.</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-label">As it runs</div>
+        <div class="card-body">A progress bar advances <b>1/5 → 5/5</b>. Each specialist's card fills in live with its headline numbers (risk, health, RUL, $/day, gate decision) the moment that agent finishes.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">The final card</div>
+        <div class="card-body">The Orchestrator's decision: <b>priority score</b>, <b>risk level</b>, a big <b>🤖 AUTONOMOUS</b> or <b>🔺 ESCALATE</b> badge, any conflict it found, the recommended action, the rationale, and the work-order draft.</div>
+      </div>
+    </div>
+
+    <div class="note note-amber">
+      <b>Why it takes ~3 minutes:</b> the free Gemini tier allows ~15 requests/minute. A full run makes ~30 LLM calls, so we throttle to
+      <span class="inline">MAX_RPM=10</span> — CrewAI deliberately pauses between calls so we never hit the rate limit. Slower on purpose, but it never crashes.
+    </div>
+  </div>
+
+  <!-- 6. UNDER THE HOOD -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <div class="section-title">Under the hood — the files</div>
+    </div>
+    <div class="section-desc">How the project fits together.</div>
+
+    <table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td class="mono">.env</td><td>Your Gemini API key + model (<span class="inline">gemini-flash-lite-latest</span>) + the throttle setting</td></tr>
+      <tr><td class="mono">step1_setup.py</td><td>Checks packages + that the API key works (run once)</td></tr>
+      <tr><td class="mono">step2_mock_tools.py</td><td>The 12 mock tools the agents call</td></tr>
+      <tr><td class="mono">titan_agents.py</td><td>The engine: builds the 5 agents + the pipeline. Exposes <span class="inline">run_pipeline()</span></td></tr>
+      <tr><td class="mono">app.py</td><td>The Streamlit demo UI — what you present</td></tr>
+      <tr><td class="mono">titan_maintenance_crew.ipynb</td><td>The same engine, runnable in Google Colab</td></tr>
+    </table>
+
+    <div class="note note-green">
+      <b>The one command to run the whole thing:</b>
+      <pre class="code" style="margin-top:8px; background:rgba(0,0,0,0.06);">cd Agentic
+streamlit run app.py</pre>
+      <span class="inline">app.py</span> imports and runs everything else internally — you don't run the other files separately.
+    </div>
+  </div>
+
+  <div class="footer">Titan MIP — Agentic AI · Asset Reliability &amp; Predictive Maintenance · IE Business School</div>
+</div>
+</body>
+</html>

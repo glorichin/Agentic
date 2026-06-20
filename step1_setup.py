@@ -75,14 +75,17 @@ if not api_key.startswith("AI"):
 print(f"\n✓  GEMINI_API_KEY loaded ({api_key[:8]}...)")
 
 # ── 4. Live API test ───────────────────────────────────────
-print("\n  Testing Gemini API connection...")
+# Use the same model the crew uses (from .env), so this test reflects reality.
+crew_model = os.getenv("GEMINI_MODEL", "gemini/gemini-flash-lite-latest").strip()
+genai_model = crew_model.split("/", 1)[-1]   # strip "gemini/" prefix for the raw SDK
+print(f"\n  Testing Gemini API connection ({genai_model})...")
 
 try:
     from google import genai
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model=genai_model,
         contents="Reply with exactly: TITAN_MIP_OK",
     )
     reply = response.text.strip()
@@ -105,12 +108,12 @@ try:
     from crewai import LLM
 
     llm = LLM(
-        model="gemini/gemini-2.0-flash",
+        model=crew_model,
         api_key=api_key,
         temperature=0.1,   # low temp = more reliable structured output
     )
     print("✓  CrewAI LLM wrapper ready")
-    print(f"   Model: gemini/gemini-2.0-flash")
+    print(f"   Model: {crew_model}")
     print(f"   Temperature: 0.1 (consistent structured output)")
 
 except Exception as e:
