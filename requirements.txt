@@ -1,0 +1,6 @@
+# Titan MIP — Python dependencies
+# Install with:  pip install -r requirements.txt
+
+crewai>=1.14.0
+google-genai>=1.0.0
+python-dotenv>=1.0.0
